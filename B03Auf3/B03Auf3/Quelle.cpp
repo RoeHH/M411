@@ -17,7 +17,7 @@ int main()
 	// Ausgabe von Länge, Breite und Fläche......
 	printf("Inhalt von pLaenge = %p \n", *pLaenge);
 	printf("Inhalt von pBreite = %p \n", *pBreite);
-	printf("Inhalt von pFlaeche = %p \n", *pFlaeche);
+	printf("Inhalt von pFlaeche = %p \n", pFlaeche);
 	system("pause");
 	return 0;
 }

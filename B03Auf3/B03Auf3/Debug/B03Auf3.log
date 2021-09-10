@@ -1,5 +1,4 @@
 ﻿  Quelle.cpp
 C:\Users\vmadmin\Documents\git\M411\B03Auf3\B03Auf3\Quelle.cpp(18,9): warning C4477: "printf": Die Formatzeichenfolge "%p" erfordert ein Argument vom Typ "void *", das variadic-Argument "1" weist aber den Typ "int" auf.
 C:\Users\vmadmin\Documents\git\M411\B03Auf3\B03Auf3\Quelle.cpp(19,9): warning C4477: "printf": Die Formatzeichenfolge "%p" erfordert ein Argument vom Typ "void *", das variadic-Argument "1" weist aber den Typ "int" auf.
-C:\Users\vmadmin\Documents\git\M411\B03Auf3\B03Auf3\Quelle.cpp(20,9): warning C4477: "printf": Die Formatzeichenfolge "%p" erfordert ein Argument vom Typ "void *", das variadic-Argument "1" weist aber den Typ "int" auf.
   B03Auf3.vcxproj -> C:\Users\vmadmin\Documents\git\M411\B03Auf3\Debug\B03Auf3.exe
