@@ -25,13 +25,12 @@ PlayerHands* createPlayerHands();
 PlayerHands* getPlayerHands();
 void appendCard(Card* pCardList, Card* pCard);
 int getListLength(Card* pFirstCard);
-Card* removeCardFromList(Card* pCardList, Card* pCard);
-Card* moveCardFromListToList(Card* pRemovingFrom, Card* pAppandingTo, Card* pCard);
+void removeCardFromList(Card** pCardList, Card* pCard);
+void moveCardFromListToList(Card** pRemovingFrom, Card* pAppandingTo, Card* pCard);
 bool newGamePrompt(bool printText);
 void playTurn(PlayerHands* pPlayerHands);
 bool selectAttribut(PlayerHands* pPlayerHands, bool printText);
-Card* moveCardFromFrontOfAListToTheBack(Card* pList);
-
+void moveCardFromFrontOfAListToTheBack(Card** pList);
 
 int main()
 {
@@ -62,20 +61,20 @@ void startGame() {
 
 /**
  * Geht durch einen Zug des Spieles
-
-* @param pPlayerHands Pointer auf die HandKarten des Spielers und des Computers
-*/
+ *
+ * @param pPlayerHands Pointer auf die HandKarten des Spielers und des Computers
+ */
 void playTurn(PlayerHands* pPlayerHands){
     printCard(pPlayerHands->pHandPlayer);
     if (selectAttribut(pPlayerHands, true)) { //Wenn der Spiler gewint verschieben wir die erste Karte beider Listen hinten an seine Liste
         printf("Supper sie hatten denn besseren Wagen :)\n");
-        pPlayerHands->pHandComputer = moveCardFromListToList(pPlayerHands->pHandComputer, pPlayerHands->pHandPlayer, pPlayerHands->pHandComputer); // Karte des Computers -> Hand des Spielers
-        pPlayerHands->pHandPlayer = moveCardFromFrontOfAListToTheBack(pPlayerHands->pHandPlayer); // Karte des Spielers -> Hand des Spielers
+        moveCardFromListToList(&pPlayerHands->pHandComputer, pPlayerHands->pHandPlayer, pPlayerHands->pHandComputer); // Karte des Computers -> Hand des Spielers
+        moveCardFromListToList(&pPlayerHands->pHandPlayer, pPlayerHands->pHandPlayer, pPlayerHands->pHandPlayer); // Karte des Spielers -> Hand des Spielers
     }
     else { // Hat der Computer gewonnen werden die Karten zu ihm verschoben
         printf("Ohhh nein der Computer hatte den besseren Wert :(\n");
-        pPlayerHands->pHandPlayer = moveCardFromListToList(pPlayerHands->pHandPlayer, pPlayerHands->pHandComputer, pPlayerHands->pHandPlayer); // Karte des Spilers -> hand des Computers
-        pPlayerHands->pHandComputer = moveCardFromFrontOfAListToTheBack(pPlayerHands->pHandComputer); // Karte des Computers -> Hand des Computers
+        moveCardFromListToList(&pPlayerHands->pHandPlayer, pPlayerHands->pHandComputer, pPlayerHands->pHandPlayer); // Karte des Spilers -> hand des Computers
+        moveCardFromListToList(&pPlayerHands->pHandComputer, pPlayerHands->pHandComputer, pPlayerHands->pHandComputer); // Karte des Computers -> Hand des Computers
     }
 }
 
@@ -110,22 +109,38 @@ bool selectAttribut(PlayerHands* pPlayerHands, bool printText) {
 }
 
 /**
- * Gibt eine Karte aus
+ * Gibt eine Karte in die Konsole aus
  *
  * @param pCard Pointer auf die Karte
  */
 void printCard(Card* pCard) {
-    printf("----------------------\n");
-    printf("Ihre Karte:\n");
-    printf("%s\n", pCard->bezeichnung);
-    printf("Leistung: %d PS\n", pCard->leistung);
-    printf("Hubraum: %.2f Liter\n", pCard->hubraum);
+    system("clear");
+    printf("------------------------------------\n");
+    printf("| Ihre Karte:                      |\n");
+    printf("------------------------------------\n");
+    printf("| %s ", pCard->bezeichnung);
+    int stringSize = 0;
+    char* pTempStr = (pCard->bezeichnung);
+    while (*pTempStr != '\0') {
+        pTempStr++;
+        stringSize++;
+    }
+    if (stringSize < 31) {
+        for (int i = 0; i < (312 - stringSize); i++)
+        {
+            printf(" ");
+        }
+    }
+    printf("| \n");
+    printf("| Leistung: %d PS               |\n", pCard->leistung);
+    printf("| Hubraum: %.2f Liter            |\n", pCard->hubraum);
+    printf("-----------------------------------\n");
 }
 
 /** 
  * Fragt den User ob er eine neues Spiel starten möchte
- * 
- * @param, printText, wenn true wird der text "Wollen sie noch einmal Spielen? J f\x81r Ja und N f\x81r Nein: " ausgegeben.
+ *
+ * @param printText, wenn true wird der text "Wollen sie noch einmal Spielen? J f\x81r Ja und N f\x81r Nein: " ausgegeben.
  * 
  * @return bool, true wenn ein neues Spiel gestartet werden soll, false wenn nicht
  */
@@ -167,11 +182,11 @@ PlayerHands* getPlayerHands()
         }
 
         if (pHandPlayer == NULL) { // Wenn der erste Spieler noch keine Karten hat wird seine Hand erstellt durch eine direkte zugweisung, die Karte wird aus dem Deck entfernt
-            pDeck = removeCardFromList(pDeck, pTemp);
+            removeCardFromList(&pDeck, pTemp);
             pHandPlayer = pTemp;
         }
         else { // Wenn der erste Spieler schon Karten hat wird die Karte an die Hand angehängt, die Karte wird auch aus dem Deck entfernt
-            pDeck = moveCardFromListToList(pDeck, pHandPlayer, pTemp);
+            moveCardFromListToList(&pDeck, pHandPlayer, pTemp);
         }
     }
     PlayerHands* pHands = createPlayerHands();
@@ -189,11 +204,10 @@ PlayerHands* getPlayerHands()
  * 
  * @return pRemovingFrom, gibt denn Pointer auf die Liste zurück von welcher das element entfernt wurde da wenn das erste element entfernt wurde dies sonst zu Fehler führt.
  */
-Card* moveCardFromListToList(Card* pRemovingFrom, Card* pAppandingTo, Card* pCard)
+void moveCardFromListToList(Card** pRemovingFrom, Card* pAppandingTo, Card* pCard)
 {
-    pRemovingFrom = removeCardFromList(pRemovingFrom, pCard);
+    removeCardFromList(pRemovingFrom, pCard);
     appendCard(pAppandingTo, pCard);
-    return pRemovingFrom;
 } 
 
 /**
@@ -203,17 +217,17 @@ Card* moveCardFromListToList(Card* pRemovingFrom, Card* pAppandingTo, Card* pCar
  *
  * @return pList, gibt denn Pointer auf die Liste zurück von welcher das element entfernt wurde da wenn das erste element entfernt wurde dies sonst zu Fehler führt.
  */
-Card* moveCardFromFrontOfAListToTheBack(Card* pList)
+void moveCardFromFrontOfAListToTheBack(Card** pList)
 {
-    Card* pTempCard = pList;
-    Card* pTempList = pList;
-    pList = pList->pNext;
+    Card* pTempCard = *pList;
+    Card* pTempList = *pList;
+    *pList = (*pList)->pNext;
     while (pTempList->pNext != NULL) {
+        printCard(pTempList);
         pTempList = pTempList->pNext;
     }
     pTempCard->pNext = NULL;
     pTempList->pNext = pTempCard;
-    return pList;
 }
 
 /** 
@@ -241,25 +255,22 @@ void appendCard(Card* pCardList, Card* pCard)
  * 
  * @return pCardList, Pointer auf die erste Karte der Liste, da wenn das erste element entfernt wurde dies sonst zu Fehler führt.
  */
-Card* removeCardFromList(Card* pCardList, Card* pCard)
+void removeCardFromList(Card** pCardList, Card* pCard)
 {
-    Card* pTemp = pCardList;
-    if (pTemp == pCard) {
-        pTemp = pTemp->pNext;
+    if (*pCardList == pCard) {
+        *pCardList = pCard->pNext;
         pCard->pNext = NULL;
-        return pTemp;
     }
     else {
-        while (pTemp->pNext != NULL && pTemp != pCard && pTemp->pNext != pCard)
+        Card* pTemp = *pCardList;
+        while (pTemp->pNext != NULL && pTemp->pNext != pCard)
         {
             pTemp = pTemp->pNext;
         }
         if (pTemp->pNext == pCard) {
             pTemp->pNext = pCard->pNext;
         }
-        pCard->pNext = NULL;
-        return pCardList;
-    }
+        pCard->pNext = NULL;    }
 }
 
 /*
@@ -284,9 +295,9 @@ int getListLength(Card* pFirstCard)
  * @return Pointer auf die erste Karte der Liste
  */
 Card* createDeck() {
-    return createCard("Audi R8", 420, 32.906,
-            createCard("Mercedes-Benz SLR McLaren", 656, 29.906, 
-                createCard("Ferrari 458 Italia", 856, 26.906,
+    return createCard("Audi R8", 4320, 32.906,
+            createCard("Mercedes-Benz SLR McLaren", 6456, 29.906, 
+                createCard("Ferrari 458 Italia", 8536, 26.906,
                     createCard("Porsche 911", 1056, 23.906,
                         createCard("Lamborghini Aventador", 1256, 17.906,
                             createCard("Bugatti Veyron", 1456, 20.906,
