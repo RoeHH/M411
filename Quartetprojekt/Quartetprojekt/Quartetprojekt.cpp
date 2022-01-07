@@ -18,6 +18,7 @@ typedef struct PlayerHands {
 
 // Funktionen
 void startGame();
+void printHandSizes(Card* pCard);
 void printCard(Card* pCard);
 Card* createCard(const char bezeichnung[50], int leistung, double hubraum, Card* pNext);
 Card* createDeck();
@@ -29,8 +30,10 @@ void removeCardFromList(Card** pCardList, Card* pCard);
 void moveCardFromListToList(Card** pRemovingFrom, Card* pAppandingTo, Card* pCard);
 bool newGamePrompt(bool printText);
 void playTurn(PlayerHands* pPlayerHands);
-bool selectAttribut(PlayerHands* pPlayerHands, bool printText);
+bool selectAttributPrompt(PlayerHands* pPlayerHands, bool printText);
 void moveCardFromFrontOfAListToTheBack(Card** pList);
+int getStringLength(char* pStr);
+bool endGamePromt(bool printText);
 
 int main()
 {
@@ -45,17 +48,51 @@ int main()
  */
 void startGame() {
     PlayerHands* playerHands = getPlayerHands();
+    bool gameEnded = false;
+    playTurn(playerHands);//Hier wird eine runde gestartet um die Frage zu beenden erst nach der ersten runde aufzurufen 
     while (playerHands->pHandComputer != NULL && playerHands->pHandPlayer != NULL) {
-        playTurn(playerHands);
+        if(endGamePromt(true)) { //Frage ob das Spiel beendet werden soll
+            playTurn(playerHands);
+        }else{
+            gameEnded = true;
+            break;
+        }
     }
-    if (playerHands->pHandComputer == NULL) {
-        printf("Sie haben gewonnen supper gemacht.\n");
+    if(!gameEnded){
+        if (playerHands->pHandComputer == NULL) {
+            printf("Sie haben gewonnen supper gemacht.\n");
+        }
+        else {
+            printf("Sie haben leider verloren versuchen sie es doch erneut.\n");
+        }
+    }
+    if(newGamePrompt(true)) { //Frage nach einem neuen Spiel
+        startGame();
+    }
+}
+
+/** 
+ * Fragt den User ob er dies Runde beenden möchte
+ *
+ * @param printText, wenn true wird der text "Wollen sie diese Runde fortfahren? J f\x81r Ja und N f\x81r Nein: " ausgegeben.
+ * 
+ * @return bool, true wenn diese Spiel beendet werden soll, false wenn nicht
+ */
+bool endGamePromt(bool printText){
+    if (printText) {
+        printf("Wollen sie diese Runde fortfahren? J f\x81r Ja und N f\x81r Nein: ");
+    }
+    char c = getchar();
+    if(c == 'J' || c == 'j') {
+        return true;
+
+    }
+    else if (c == 'N' || c == 'n') {
+        return false;
+
     }
     else {
-        printf("Sie haben leider verloren versuchen sie es doch erneut.\n");
-    }
-    if(newGamePrompt(true)) {
-        startGame();
+        return endGamePromt(false);
     }
 }
 
@@ -65,16 +102,17 @@ void startGame() {
  * @param pPlayerHands Pointer auf die HandKarten des Spielers und des Computers
  */
 void playTurn(PlayerHands* pPlayerHands){
-    printCard(pPlayerHands->pHandPlayer);
-    if (selectAttribut(pPlayerHands, true)) { //Wenn der Spiler gewint verschieben wir die erste Karte beider Listen hinten an seine Liste
+    printHandSizes(pPlayerHands->pHandPlayer); // Consolen Ausgabe der Anzahl Handkarten des Spielers
+    printCard(pPlayerHands->pHandPlayer); // Consolen Ausgabe der Handkarten des Spielers
+    if (selectAttributPrompt(pPlayerHands, true)) { //Wenn der Spiler gewint verschieben wir die erste Karte beider Listen hinten an seine Liste
         printf("Supper sie hatten denn besseren Wagen :)\n");
         moveCardFromListToList(&pPlayerHands->pHandComputer, pPlayerHands->pHandPlayer, pPlayerHands->pHandComputer); // Karte des Computers -> Hand des Spielers
-        moveCardFromListToList(&pPlayerHands->pHandPlayer, pPlayerHands->pHandPlayer, pPlayerHands->pHandPlayer); // Karte des Spielers -> Hand des Spielers
+        moveCardFromFrontOfAListToTheBack(&pPlayerHands->pHandPlayer); // Karte des Spielers -> Hand des Spielers
     }
     else { // Hat der Computer gewonnen werden die Karten zu ihm verschoben
         printf("Ohhh nein der Computer hatte den besseren Wert :(\n");
         moveCardFromListToList(&pPlayerHands->pHandPlayer, pPlayerHands->pHandComputer, pPlayerHands->pHandPlayer); // Karte des Spilers -> hand des Computers
-        moveCardFromListToList(&pPlayerHands->pHandComputer, pPlayerHands->pHandComputer, pPlayerHands->pHandComputer); // Karte des Computers -> Hand des Computers
+        moveCardFromFrontOfAListToTheBack(&pPlayerHands->pHandComputer); // Karte des Computers -> Hand des Computers
     }
 }
 
@@ -86,55 +124,93 @@ void playTurn(PlayerHands* pPlayerHands){
  * 
  * @return bool, gibt true zurück wenn der spieler seine Kartebehält, false wenn nicht
  */
-bool selectAttribut(PlayerHands* pPlayerHands, bool printText) {
+bool selectAttributPrompt(PlayerHands* pPlayerHands, bool printText) {
     if (printText) {
         printf("Wollen sie die Leistung oder den Hubraum vergleichen? \n"
             "Geben sie L f\x81r Leistung ein oder H f\x81r Hubraum: ");
     }
     char c = getchar();
     if(c == 'L' || c == 'l') {
-        printf("Leistung Spieler: %d PS\n", pPlayerHands->pHandPlayer->leistung);
-        printf("Leistung Computer: %d PS\n", pPlayerHands->pHandComputer->leistung);
+        printf("------------------------------------\n");
+        printf("| Leistung Spieler: %d PS        |\n", pPlayerHands->pHandPlayer->leistung);
+        printf("| Leistung Computer: %d PS       |\n", pPlayerHands->pHandComputer->leistung);
+        printf("------------------------------------\n");
         return (pPlayerHands->pHandPlayer->leistung > pPlayerHands->pHandComputer->leistung);
     } 
     else if(c == 'H' || c == 'h') {
-        printf("Hubraum Spieler: %.2f Liter\n", pPlayerHands->pHandPlayer->hubraum);
-        printf("Hubraum Computer: %.2f Liter\n", pPlayerHands->pHandComputer->hubraum);
+        printf("------------------------------------\n");
+        printf("| Hubraum Spieler: %.2f Liter     |\n", pPlayerHands->pHandPlayer->hubraum);
+        printf("| Hubraum Computer: %.2f Liter    |\n", pPlayerHands->pHandComputer->hubraum);
+        printf("------------------------------------\n");
         return (pPlayerHands->pHandPlayer->hubraum > pPlayerHands->pHandComputer->hubraum);
 
     } 
     else {
-        return selectAttribut(pPlayerHands, false);
+        return selectAttributPrompt(pPlayerHands, false);
     }
 }
+
+/**
+ * Gibt die Anzahl der Karten der beiden Handen aus
+ *
+ * @param pCard Pointer auf die erste Karte des Spielers 
+ */
+void printHandSizes(Card* pCard){
+    printf("------------------------------------\n");
+    int anzahlKartenSpieler = getListLength(pCard);
+    printf("| Anzahl Karten Spieler:  %d       ", anzahlKartenSpieler);
+    if (anzahlKartenSpieler > 10) {
+        printf("|\n");
+    }
+    else {
+        printf(" |\n");
+    }
+    printf("| Anzahl Karten Computer: %d       ", anzahlKartenSpieler);
+    if (anzahlKartenSpieler > 10) {
+        printf("|\n");
+    }
+    else {
+        printf(" |\n");
+    }
+}
+
 
 /**
  * Gibt eine Karte in die Konsole aus
  *
  * @param pCard Pointer auf die Karte
  */
-void printCard(Card* pCard) {
-    system("clear");
+void printCard(Card* pCard) 
+{
     printf("------------------------------------\n");
     printf("| Ihre Karte:                      |\n");
     printf("------------------------------------\n");
-    printf("| %s ", pCard->bezeichnung);
-    int stringSize = 0;
-    char* pTempStr = (pCard->bezeichnung);
-    while (*pTempStr != '\0') {
-        pTempStr++;
-        stringSize++;
+    printf("| %s", pCard->bezeichnung);
+    for (int i = getStringLength(pCard->bezeichnung); i < 33; i++) {
+        printf(" ");
     }
-    if (stringSize < 31) {
-        for (int i = 0; i < (312 - stringSize); i++)
-        {
-            printf(" ");
-        }
+    printf("|\n");
+    printf("| Leistung: %d PS                |\n", pCard->leistung);
+    printf("| Hubraum: %.2f Liter             |\n", pCard->hubraum);
+    printf("------------------------------------\n");
+}
+
+/**
+ * Gibt die länge eines Strings zurück
+ *
+ * @param pStr pointer auf einen string
+ *
+ * @return count of chars in string
+ */
+int getStringLength(char* pStr)
+{
+    int count = 0;
+    while (*pStr != '\0')
+    {
+        count++;
+        *pStr++;
     }
-    printf("| \n");
-    printf("| Leistung: %d PS               |\n", pCard->leistung);
-    printf("| Hubraum: %.2f Liter            |\n", pCard->hubraum);
-    printf("-----------------------------------\n");
+    return(count);
 }
 
 /** 
@@ -223,7 +299,6 @@ void moveCardFromFrontOfAListToTheBack(Card** pList)
     Card* pTempList = *pList;
     *pList = (*pList)->pNext;
     while (pTempList->pNext != NULL) {
-        printCard(pTempList);
         pTempList = pTempList->pNext;
     }
     pTempCard->pNext = NULL;
@@ -298,13 +373,13 @@ Card* createDeck() {
     return createCard("Audi R8", 4320, 32.906,
             createCard("Mercedes-Benz SLR McLaren", 6456, 29.906, 
                 createCard("Ferrari 458 Italia", 8536, 26.906,
-                    createCard("Porsche 911", 1056, 23.906,
+                    createCard("Porsche 911", 1056, 23.906, 
                         createCard("Lamborghini Aventador", 1256, 17.906,
                             createCard("Bugatti Veyron", 1456, 20.906,
                                 createCard("Ferrari F40", 1656, 14.906,
                                     createCard("Lamborghini Huracan", 1856, 11.906,
-                                        createCard("Porsche Panamera", 2056, 8.906,
-                                            createCard("Ferrari F50", 2256, 4.163, NULL))))))))));
+                                        createCard("Porsche Panamera", 2056, 28.906,
+                                            createCard("Ferrari F50", 2256, 14.163, NULL))))))))));
 }
 
 /**
