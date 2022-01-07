@@ -102,6 +102,7 @@ bool endGamePromt(bool printText){
  * @param pPlayerHands Pointer auf die HandKarten des Spielers und des Computers
  */
 void playTurn(PlayerHands* pPlayerHands){
+    system("cls");
     printHandSizes(pPlayerHands->pHandPlayer); // Consolen Ausgabe der Anzahl Handkarten des Spielers
     printCard(pPlayerHands->pHandPlayer); // Consolen Ausgabe der Handkarten des Spielers
     if (selectAttributPrompt(pPlayerHands, true)) { //Wenn der Spiler gewint verschieben wir die erste Karte beider Listen hinten an seine Liste
@@ -158,20 +159,8 @@ bool selectAttributPrompt(PlayerHands* pPlayerHands, bool printText) {
 void printHandSizes(Card* pCard){
     printf("------------------------------------\n");
     int anzahlKartenSpieler = getListLength(pCard);
-    printf("| Anzahl Karten Spieler:  %d       ", anzahlKartenSpieler);
-    if (anzahlKartenSpieler > 10) {
-        printf("|\n");
-    }
-    else {
-        printf(" |\n");
-    }
-    printf("| Anzahl Karten Computer: %d       ", anzahlKartenSpieler);
-    if (anzahlKartenSpieler > 10) {
-        printf("|\n");
-    }
-    else {
-        printf(" |\n");
-    }
+    printf("| Anzahl Karten Spieler:  %d        | \n", anzahlKartenSpieler);
+    printf("| Anzahl Karten Computer: %d        | \n", (10 - anzahlKartenSpieler));
 }
 
 
